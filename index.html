@@ -252,6 +252,17 @@
   .form-msg.err{ background:#FDECEC; color:var(--danger); }
   .form-msg.ok{ background:#EAF7EF; color:var(--ok); }
 
+  .myp-card{ border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:12px; }
+  .myp-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  .myp-top h4{ font-size:1rem; font-weight:600; }
+  .myp-meta{ font-size:0.78rem; color:var(--muted); margin-bottom:10px; }
+  .myp-status{ font-size:0.7rem; font-weight:600; padding:4px 10px; border-radius:999px; background:var(--paper-tint); color:var(--ink-soft); flex-shrink:0; white-space:nowrap; }
+  .myp-desc{ font-size:0.87rem; color:var(--ink-soft); margin-bottom:14px; }
+  .myp-actions{ display:flex; gap:8px; }
+  .myp-actions button{ font-size:0.8rem; font-weight:600; padding:7px 14px; border-radius:999px; border:1px solid var(--line); background:#fff; cursor:pointer; color:var(--ink-soft); }
+  .myp-actions button:hover{ border-color:var(--blue); color:var(--blue); }
+  .myp-actions button.danger:hover{ border-color:var(--danger); color:var(--danger); }
+
   .svc-detail-list{ margin:18px 0 26px; display:flex; flex-direction:column; gap:10px; }
   .svc-detail-list li{ display:flex; gap:10px; font-size:0.9rem; color:var(--ink-soft); }
   .svc-detail-list li::before{ content:"✓"; color:var(--blue); font-weight:700; flex-shrink:0; }
@@ -560,8 +571,8 @@
 <div class="overlay" id="projectOverlay">
   <div class="modal modal-wide">
     <button class="close" data-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    <h3 data-en="Start my project" data-ar="ابدأ مشروعي">Start my project</h3>
-    <p class="sub" data-en="Tell us the essentials — we'll follow up by phone or email." data-ar="أخبرنا بالأساسيات — سنتواصل معك عبر الهاتف أو البريد الإلكتروني.">Tell us the essentials — we'll follow up by phone or email.</p>
+    <h3 id="projectModalTitle" data-en="Start my project" data-ar="ابدأ مشروعي">Start my project</h3>
+    <p class="sub" id="projectModalSub" data-en="Tell us the essentials — we'll follow up by phone or email." data-ar="أخبرنا بالأساسيات — سنتواصل معك عبر الهاتف أو البريد الإلكتروني.">Tell us the essentials — we'll follow up by phone or email.</p>
 
     <div class="form-msg" id="projectMsg"></div>
 
@@ -599,6 +610,17 @@
       </div>
       <button type="submit" class="btn btn-primary btn-block" id="projectSubmit" data-en="Submit project" data-ar="إرسال المشروع">Submit project</button>
     </form>
+  </div>
+</div>
+
+<!-- ============ MY PROJECTS MODAL ============ -->
+<div class="overlay" id="myProjectsOverlay">
+  <div class="modal modal-wide">
+    <button class="close" data-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <h3 data-en="My projects" data-ar="مشاريعي">My projects</h3>
+    <p class="sub" data-en="Everything you've submitted to IntelligentEra." data-ar="كل ما أرسلته إلى IntelligentEra.">Everything you've submitted to IntelligentEra.</p>
+    <div id="myProjectsList"></div>
+    <p id="myProjectsEmpty" style="display:none; color:var(--muted); font-size:0.9rem; text-align:center; padding:30px 0;" data-en="You haven't submitted a project yet." data-ar="لم ترسل أي مشروع بعد.">You haven't submitted a project yet.</p>
   </div>
 </div>
 
@@ -724,15 +746,109 @@
   }
 
   let pendingAfterAuth = null;
+  let editingProjectId = null;
 
-  function openProjectForm(){
+  function openProjectForm(existing){
     const sel = document.getElementById('pjService');
     const lang = htmlEl.getAttribute('lang');
     sel.innerHTML = SERVICES.map(s => `<option value="${s.id}">${s[lang].name}</option>`).join('');
-    if(pendingServiceId){ sel.value = pendingServiceId; }
-    if(auth.currentUser && auth.currentUser.email){ document.getElementById('pjEmail').value = auth.currentUser.email; }
+
+    editingProjectId = existing ? existing.id : null;
+    const titleEl = document.getElementById('projectModalTitle');
+    const subEl = document.getElementById('projectModalSub');
+    const submitBtn = document.getElementById('projectSubmit');
+
+    if(existing){
+      titleEl.textContent = lang === 'ar' ? 'تعديل المشروع' : 'Edit project';
+      subEl.textContent = lang === 'ar' ? 'حدّث تفاصيل مشروعك أدناه.' : "Update your project's details below.";
+      submitBtn.textContent = lang === 'ar' ? 'حفظ التعديلات' : 'Save changes';
+      sel.value = existing.serviceId || '';
+      document.getElementById('pjName').value = existing.projectName || '';
+      document.getElementById('pjDetails').value = existing.details || '';
+      document.getElementById('pjPhone').value = existing.phone || '';
+      document.getElementById('pjEmail').value = existing.email || '';
+      document.getElementById('pjBudget').value = existing.budget || '';
+    } else {
+      titleEl.textContent = lang === 'ar' ? 'ابدأ مشروعي' : 'Start my project';
+      subEl.textContent = lang === 'ar' ? 'أخبرنا بالأساسيات — سنتواصل معك عبر الهاتف أو البريد الإلكتروني.' : "Tell us the essentials — we'll follow up by phone or email.";
+      submitBtn.textContent = lang === 'ar' ? 'إرسال المشروع' : 'Submit project';
+      document.getElementById('projectForm').reset();
+      if(pendingServiceId){ sel.value = pendingServiceId; }
+      if(auth.currentUser && auth.currentUser.email){ document.getElementById('pjEmail').value = auth.currentUser.email; }
+    }
     document.getElementById('projectMsg').classList.remove('show');
     openModal('projectOverlay');
+  }
+
+  /* ---------------- My projects ---------------- */
+  function openMyProjects(){
+    const lang = htmlEl.getAttribute('lang');
+    const listEl = document.getElementById('myProjectsList');
+    const emptyEl = document.getElementById('myProjectsEmpty');
+    listEl.innerHTML = `<p style="text-align:center; color:var(--muted); font-size:0.9rem; padding:30px 0;">${lang==='ar' ? 'جارٍ التحميل...' : 'Loading...'}</p>`;
+    emptyEl.style.display = 'none';
+    openModal('myProjectsOverlay');
+
+    db.collection('projects').where('uid', '==', auth.currentUser.uid).get().then(snap => {
+      let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => {
+        const at = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+        const bt = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+        return bt - at;
+      });
+      if(!docs.length){
+        listEl.innerHTML = '';
+        emptyEl.style.display = 'block';
+        return;
+      }
+      emptyEl.style.display = 'none';
+      const statusLabels = {
+        new: lang==='ar' ? 'جديد' : 'New',
+        contacted: lang==='ar' ? 'تم التواصل' : 'Contacted',
+        in_progress: lang==='ar' ? 'قيد التنفيذ' : 'In progress',
+        done: lang==='ar' ? 'مكتمل' : 'Done'
+      };
+      listEl.innerHTML = docs.map(p => `
+        <div class="myp-card" data-id="${p.id}">
+          <div class="myp-top">
+            <h4>${escapeHtmlIE(p.projectName || '—')}</h4>
+            <span class="myp-status">${statusLabels[p.status] || statusLabels.new}</span>
+          </div>
+          <div class="myp-meta">${escapeHtmlIE(p.serviceName || p.serviceId || '')} · ${escapeHtmlIE(p.budget || '')}</div>
+          <div class="myp-desc">${escapeHtmlIE(p.details || '')}</div>
+          <div class="myp-actions">
+            <button data-act="edit">${lang==='ar' ? 'تعديل' : 'Edit'}</button>
+            <button data-act="delete" class="danger">${lang==='ar' ? 'حذف' : 'Delete'}</button>
+          </div>
+        </div>
+      `).join('');
+
+      listEl.querySelectorAll('.myp-card').forEach(card => {
+        const id = card.getAttribute('data-id');
+        const p = docs.find(d => d.id === id);
+        card.querySelector('[data-act="edit"]').addEventListener('click', () => {
+          closeModal('myProjectsOverlay');
+          openProjectForm(p);
+        });
+        card.querySelector('[data-act="delete"]').addEventListener('click', async () => {
+          const confirmMsg = lang==='ar' ? 'هل أنت متأكد من حذف هذا المشروع؟' : "Delete this project? This can't be undone.";
+          if(!confirm(confirmMsg)) return;
+          try{
+            await db.collection('projects').doc(id).delete();
+            toast(lang==='ar' ? 'تم حذف المشروع' : 'Project deleted', 'ok');
+            openMyProjects();
+          }catch(err){
+            toast(err.message, 'err');
+          }
+        });
+      });
+    }).catch(err => {
+      listEl.innerHTML = `<p style="color:var(--danger); font-size:0.88rem; text-align:center; padding:20px 0;">${escapeHtmlIE(err.message)}</p>`;
+    });
+  }
+
+  function escapeHtmlIE(str){
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
   /* ---------------- Auth UI ---------------- */
@@ -843,11 +959,13 @@
           <div class="user-chip" id="userChipBtn"><span class="av">${initial}</span><span>${(user.displayName || user.email || '').split(' ')[0]}</span></div>
           <div class="user-drop" id="userDrop">
             <button id="myProjectBtn">${lang==='ar' ? 'ابدأ مشروعًا' : 'Start a project'}</button>
+            <button id="viewProjectsBtn">${lang==='ar' ? 'مشاريعي' : 'My projects'}</button>
             <button id="logoutBtn">${lang==='ar' ? 'تسجيل الخروج' : 'Log out'}</button>
           </div>
         </div>`;
       document.getElementById('userChipBtn').addEventListener('click', () => document.getElementById('userDrop').classList.toggle('open'));
       document.getElementById('myProjectBtn').addEventListener('click', () => { document.getElementById('userDrop').classList.remove('open'); launchProjectFlow(); });
+      document.getElementById('viewProjectsBtn').addEventListener('click', () => { document.getElementById('userDrop').classList.remove('open'); openMyProjects(); });
       document.getElementById('logoutBtn').addEventListener('click', async () => { await auth.signOut(); document.getElementById('userDrop').classList.remove('open'); toast(lang==='ar' ? 'تم تسجيل الخروج' : 'Logged out'); });
     } else {
       area.innerHTML = `<button class="btn btn-primary btn-sm" id="navAuthBtn">${lang==='ar' ? 'دخول / تسجيل' : 'Log in / Sign up'}</button>`;
@@ -871,22 +989,31 @@
     const orig = btn.innerHTML;
     btn.innerHTML = '<span class="spinner"></span>';
     try{
-      await db.collection('projects').add({
-        uid: auth.currentUser.uid,
-        accountEmail: auth.currentUser.email || '',
+      const payload = {
         serviceId: document.getElementById('pjService').value,
         serviceName: SERVICES.find(s => s.id === document.getElementById('pjService').value)['en'].name,
         projectName: document.getElementById('pjName').value.trim(),
         details: document.getElementById('pjDetails').value.trim(),
         phone: document.getElementById('pjPhone').value.trim(),
         email: document.getElementById('pjEmail').value.trim(),
-        budget: document.getElementById('pjBudget').value,
-        status: 'new',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      closeModal('projectOverlay');
-      document.getElementById('projectForm').reset();
-      toast(lang==='ar' ? 'تم إرسال مشروعك! سنتواصل معك قريبًا.' : 'Project submitted! We\'ll be in touch soon.', 'ok');
+        budget: document.getElementById('pjBudget').value
+      };
+      if(editingProjectId){
+        await db.collection('projects').doc(editingProjectId).update(payload);
+        closeModal('projectOverlay');
+        document.getElementById('projectForm').reset();
+        editingProjectId = null;
+        toast(lang==='ar' ? 'تم حفظ التعديلات' : 'Project updated', 'ok');
+      } else {
+        payload.uid = auth.currentUser.uid;
+        payload.accountEmail = auth.currentUser.email || '';
+        payload.status = 'new';
+        payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        await db.collection('projects').add(payload);
+        closeModal('projectOverlay');
+        document.getElementById('projectForm').reset();
+        toast(lang==='ar' ? 'تم إرسال مشروعك! سنتواصل معك قريبًا.' : 'Project submitted! We\'ll be in touch soon.', 'ok');
+      }
     }catch(err){
       const el = document.getElementById('projectMsg');
       el.textContent = err.message; el.className = 'form-msg show err';
