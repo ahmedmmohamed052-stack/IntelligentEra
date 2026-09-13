@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IntelligentEra — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1130; --ink-soft:#3B4260; --muted:#67708C; --line:#DCE2F0;
+    --paper:#FFFFFF; --paper-tint:#F5F7FC; --blue:#2451F2; --blue-deep:#132C8C;
+    --violet:#6C4CF1; --danger:#D64545; --ok:#127A4E; --warn:#B8860B;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--paper-tint); color:var(--ink); font-family:'Inter',sans-serif; min-height:100vh; }
+  h1,h2,h3{ font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  a{ color:inherit; text-decoration:none; }
+  button{ font:inherit; }
+
+  header{ background:#fff; border-bottom:1px solid var(--line); padding:18px 0; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 28px; }
+  .nav{ display:flex; align-items:center; justify-content:space-between; }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:600; font-size:1.05rem; }
+  .brand img{ height:28px; }
+  .pill{ font-size:0.72rem; font-weight:600; background:var(--paper-tint); border:1px solid var(--line); color:var(--muted); padding:4px 10px; border-radius:999px; }
+
+  .btn{ display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:999px; font-size:0.87rem; font-weight:600; cursor:pointer; border:1px solid transparent; background:var(--ink); color:#fff; }
+  .btn:hover{ background:var(--blue-deep); }
+  .btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--blue); color:var(--blue); }
+
+  main{ max-width:1180px; margin:0 auto; padding:40px 28px 80px; }
+
+  /* Gate screen */
+  #gate{ max-width:380px; margin:80px auto; background:#fff; border:1px solid var(--line); border-radius:20px; padding:36px; text-align:center; }
+  #gate h2{ margin-bottom:8px; }
+  #gate p{ color:var(--muted); font-size:0.92rem; margin-bottom:24px; }
+  .field{ margin-bottom:14px; text-align:left; }
+  .field label{ display:block; font-size:0.8rem; font-weight:600; margin-bottom:6px; color:var(--ink-soft); }
+  .field input{ width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:10px; font:inherit; }
+  .field input:focus{ outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(36,81,242,.15); }
+  .msg{ font-size:0.85rem; padding:10px 12px; border-radius:8px; margin-bottom:14px; display:none; }
+  .msg.show{ display:block; }
+  .msg.err{ background:#FDECEC; color:var(--danger); }
+  .msg.warn{ background:#FFF7E6; color:var(--warn); }
+
+  /* Dashboard */
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+  @media(max-width:760px){ .stat-row{ grid-template-columns:repeat(2,1fr);} }
+  .stat{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px; }
+  .stat strong{ display:block; font-family:'Space Grotesk',sans-serif; font-size:1.6rem; }
+  .stat span{ font-size:0.8rem; color:var(--muted); }
+
+  .toolbar{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; }
+  .filters button{ padding:7px 14px; border-radius:999px; border:1px solid var(--line); background:#fff; font-size:0.8rem; cursor:pointer; color:var(--muted); }
+  .filters button.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+
+  .table-wrap{ background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:0.87rem; }
+  th{ text-align:left; padding:14px 16px; background:var(--paper-tint); font-size:0.75rem; text-transform:none; color:var(--muted); font-weight:600; border-bottom:1px solid var(--line); }
+  td{ padding:14px 16px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td{ border-bottom:none; }
+  tr.row-card{ cursor:pointer; }
+  tr.row-card:hover{ background:var(--paper-tint); }
+  .svc-tag{ display:inline-block; font-size:0.74rem; font-weight:600; padding:4px 10px; border-radius:999px; background:#EEF2FC; color:var(--blue-deep); }
+  .status-sel{ padding:6px 10px; border-radius:8px; border:1px solid var(--line); font-size:0.8rem; font-weight:600; background:#fff; }
+  .status-new{ color:var(--blue-deep); }
+  .status-contacted{ color:var(--warn); }
+  .status-in_progress{ color:var(--violet); }
+  .status-done{ color:var(--ok); }
+  .empty{ text-align:center; padding:60px 20px; color:var(--muted); }
+
+  .overlay{ position:fixed; inset:0; background:rgba(11,17,48,.45); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .overlay.open{ display:flex; }
+  .detail-modal{ background:#fff; border-radius:18px; max-width:520px; width:100%; padding:32px; max-height:86vh; overflow-y:auto; }
+  .detail-modal h3{ margin-bottom:4px; }
+  .detail-modal .row{ display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); font-size:0.88rem; }
+  .detail-modal .row .k{ color:var(--muted); flex-shrink:0; }
+  .detail-modal .row .v{ text-align:right; font-weight:500; }
+  .detail-modal .close{ float:right; border:none; background:var(--paper-tint); width:30px; height:30px; border-radius:50%; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <img src="https://res.cloudinary.com/dhanjaap5/image/upload/v1789268953/intelligentEra-removebg-preview_a85ytf.png" alt="">
+      <span>IntelligentEra <span class="pill">Admin</span></span>
+    </div>
+    <div id="headerRight"></div>
+  </div>
+</header>
+
+<!-- Gate: shown until an authorized admin signs in -->
+<div id="gate">
+  <h2>Admin sign in</h2>
+  <p>Sign in with an authorized IntelligentEra account to view project requests.</p>
+  <div class="msg" id="gateMsg"></div>
+  <form id="gateForm">
+    <div class="field"><label>Email</label><input type="email" id="gateEmail" required></div>
+    <div class="field"><label>Password</label><input type="password" id="gatePassword" required></div>
+    <button type="submit" class="btn" style="width:100%; justify-content:center;">Sign in</button>
+  </form>
+</div>
+
+<main id="dash" style="display:none;">
+  <div class="stat-row">
+    <div class="stat"><strong id="statTotal">0</strong><span>Total projects</span></div>
+    <div class="stat"><strong id="statNew">0</strong><span>New</span></div>
+    <div class="stat"><strong id="statProgress">0</strong><span>In progress</span></div>
+    <div class="stat"><strong id="statDone">0</strong><span>Completed</span></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="filters" id="filters">
+      <button data-filter="all" class="active">All</button>
+      <button data-filter="new">New</button>
+      <button data-filter="contacted">Contacted</button>
+      <button data-filter="in_progress">In progress</button>
+      <button data-filter="done">Done</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Service</th>
+          <th>Contact</th>
+          <th>Budget</th>
+          <th>Submitted</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="projectsBody"></tbody>
+    </table>
+    <div class="empty" id="emptyState" style="display:none;">No project requests yet.</div>
+  </div>
+</main>
+
+<div class="overlay" id="detailOverlay">
+  <div class="detail-modal">
+    <button class="close" id="detailClose">✕</button>
+    <h3 id="dTitle"></h3>
+    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:16px;" id="dSub"></p>
+    <div class="row"><span class="k">Details</span><span class="v" id="dDetails" style="text-align:left; max-width:320px;"></span></div>
+    <div class="row"><span class="k">Phone</span><span class="v" id="dPhone"></span></div>
+    <div class="row"><span class="k">Email</span><span class="v" id="dEmail"></span></div>
+    <div class="row"><span class="k">Budget</span><span class="v" id="dBudget"></span></div>
+    <div class="row"><span class="k">Account</span><span class="v" id="dAccount"></span></div>
+    <div class="row"><span class="k">Submitted</span><span class="v" id="dDate"></span></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyA95dYkvm8CDwhiiERyFjjpR9KQr7_y3q8",
+    authDomain: "intelligentera-8ce89.firebaseapp.com",
+    projectId: "intelligentera-8ce89",
+    storageBucket: "intelligentera-8ce89.firebasestorage.app",
+    messagingSenderId: "619371412828",
+    appId: "1:619371412828:web:619a46db42f80582615599",
+    measurementId: "G-WVGMKDZ59P"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // EDIT THIS LIST — only these emails are allowed into the admin dashboard.
+  const ADMIN_EMAILS = ['intelligentera2226@gmail.com'];
+
+  let allProjects = [];
+  let currentFilter = 'all';
+
+  document.getElementById('gateForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('gateEmail').value.trim();
+    const pass = document.getElementById('gatePassword').value;
+    const msg = document.getElementById('gateMsg');
+    msg.classList.remove('show');
+    try{
+      await auth.signInWithEmailAndPassword(email, pass);
+      // onAuthStateChanged below handles the admin check + dashboard load
+    }catch(err){
+      msg.textContent = err.message;
+      msg.className = 'msg show err';
+    }
+  });
+
+  auth.onAuthStateChanged(user => {
+    const gate = document.getElementById('gate');
+    const dash = document.getElementById('dash');
+    const headerRight = document.getElementById('headerRight');
+
+    if(user && ADMIN_EMAILS.includes(user.email)){
+      gate.style.display = 'none';
+      dash.style.display = 'block';
+      headerRight.innerHTML = `<span class="pill" style="margin-right:10px;">${user.email}</span><button class="btn btn-ghost" id="signOutBtn">Sign out</button>`;
+      document.getElementById('signOutBtn').addEventListener('click', () => auth.signOut());
+      loadProjects();
+    } else if(user){
+      gate.style.display = 'block';
+      dash.style.display = 'none';
+      headerRight.innerHTML = '';
+      const msg = document.getElementById('gateMsg');
+      msg.textContent = 'This account is not authorized for admin access.';
+      msg.className = 'msg show warn';
+      auth.signOut();
+    } else {
+      gate.style.display = 'block';
+      dash.style.display = 'none';
+      headerRight.innerHTML = '';
+    }
+  });
+
+  function loadProjects(){
+    db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
+      allProjects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderStats();
+      renderTable();
+    }, err => {
+      document.getElementById('projectsBody').innerHTML = `<tr><td colspan="6" style="color:var(--danger);">Couldn't load projects: ${err.message}</td></tr>`;
+    });
+  }
+
+  function renderStats(){
+    document.getElementById('statTotal').textContent = allProjects.length;
+    document.getElementById('statNew').textContent = allProjects.filter(p => (p.status||'new') === 'new').length;
+    document.getElementById('statProgress').textContent = allProjects.filter(p => p.status === 'in_progress').length;
+    document.getElementById('statDone').textContent = allProjects.filter(p => p.status === 'done').length;
+  }
+
+  document.getElementById('filters').addEventListener('click', e => {
+    if(e.target.tagName !== 'BUTTON') return;
+    currentFilter = e.target.getAttribute('data-filter');
+    document.querySelectorAll('#filters button').forEach(b => b.classList.toggle('active', b === e.target));
+    renderTable();
+  });
+
+  function fmtDate(ts){
+    if(!ts || !ts.toDate) return '—';
+    return ts.toDate().toLocaleString(undefined, { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+
+  function renderTable(){
+    const body = document.getElementById('projectsBody');
+    const list = currentFilter === 'all' ? allProjects : allProjects.filter(p => (p.status||'new') === currentFilter);
+    document.getElementById('emptyState').style.display = list.length ? 'none' : 'block';
+    body.innerHTML = list.map(p => `
+      <tr class="row-card" data-id="${p.id}">
+        <td><strong>${escapeHtml(p.projectName||'—')}</strong></td>
+        <td><span class="svc-tag">${escapeHtml(p.serviceName||p.serviceId||'—')}</span></td>
+        <td>${escapeHtml(p.phone||'—')}<br><span style="color:var(--muted);font-size:0.78rem;">${escapeHtml(p.email||'—')}</span></td>
+        <td>${escapeHtml(p.budget||'—')}</td>
+        <td>${fmtDate(p.createdAt)}</td>
+        <td>
+          <select class="status-sel status-${p.status||'new'}" data-id="${p.id}">
+            <option value="new" ${!p.status || p.status==='new' ? 'selected':''}>New</option>
+            <option value="contacted" ${p.status==='contacted'?'selected':''}>Contacted</option>
+            <option value="in_progress" ${p.status==='in_progress'?'selected':''}>In progress</option>
+            <option value="done" ${p.status==='done'?'selected':''}>Done</option>
+          </select>
+        </td>
+      </tr>
+    `).join('');
+
+    body.querySelectorAll('.status-sel').forEach(sel => {
+      sel.addEventListener('click', e => e.stopPropagation());
+      sel.addEventListener('change', async e => {
+        e.stopPropagation();
+        const id = sel.getAttribute('data-id');
+        sel.className = 'status-sel status-' + sel.value;
+        await db.collection('projects').doc(id).update({ status: sel.value });
+      });
+    });
+
+    body.querySelectorAll('.row-card').forEach(row => {
+      row.addEventListener('click', () => openDetail(row.getAttribute('data-id')));
+    });
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function openDetail(id){
+    const p = allProjects.find(x => x.id === id);
+    if(!p) return;
+    document.getElementById('dTitle').textContent = p.projectName || '—';
+    document.getElementById('dSub').textContent = p.serviceName || p.serviceId || '';
+    document.getElementById('dDetails').textContent = p.details || '—';
+    document.getElementById('dPhone').textContent = p.phone || '—';
+    document.getElementById('dEmail').textContent = p.email || '—';
+    document.getElementById('dBudget').textContent = p.budget || '—';
+    document.getElementById('dAccount').textContent = p.accountEmail || '—';
+    document.getElementById('dDate').textContent = fmtDate(p.createdAt);
+    document.getElementById('detailOverlay').classList.add('open');
+  }
+  document.getElementById('detailClose').addEventListener('click', () => document.getElementById('detailOverlay').classList.remove('open'));
+  document.getElementById('detailOverlay').addEventListener('click', e => { if(e.target.id==='detailOverlay') e.currentTarget.classList.remove('open'); });
+</script>
+
+</body>
+</html>

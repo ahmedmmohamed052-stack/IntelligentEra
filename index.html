@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IntelligentEra — Software, AI Agents &amp; Digital Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Tajawal:wght@400;500;700;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1130;
+    --ink-soft:#3B4260;
+    --muted:#67708C;
+    --line:#DCE2F0;
+    --paper:#FFFFFF;
+    --paper-tint:#F5F7FC;
+    --blue:#2451F2;
+    --blue-deep:#132C8C;
+    --violet:#6C4CF1;
+    --sky:#3FA9F5;
+    --danger:#D64545;
+    --ok:#127A4E;
+    --radius-lg: 22px;
+    --maxw: 1180px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.disp{ font-family:'Space Grotesk', sans-serif; color:var(--ink); font-weight:600; letter-spacing:-0.01em; }
+  [dir="rtl"] body{ font-family:'IBM Plex Sans Arabic','Tajawal', sans-serif; }
+  [dir="rtl"] h1,[dir="rtl"] h2,[dir="rtl"] h3,[dir="rtl"] .disp{ font-family:'Tajawal', sans-serif; font-weight:700; letter-spacing:0; }
+  [dir="rtl"] .eyebrow, [dir="rtl"] .kicker{ font-family:'Tajawal', sans-serif; }
+
+  img{max-width:100%; display:block;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font:inherit;}
+
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 32px;}
+  @media(max-width:640px){ .wrap{padding:0 20px;} }
+  :focus-visible{ outline:2px solid var(--blue); outline-offset:3px; }
+
+  .grain-line{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: linear-gradient(180deg, rgba(36,81,242,0.035) 0%, rgba(255,255,255,0) 260px);
+  }
+
+  /* ---------- Reveal-on-scroll ---------- */
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in-view{ opacity:1; transform:none; }
+  .reveal-stagger > *{ transition-delay:calc(var(--i,0) * 70ms); }
+
+  /* ---------- Nav ---------- */
+  header{ position:sticky; top:0; z-index:50; background:rgba(255,255,255,0.86); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  .nav{ display:flex; align-items:center; justify-content:space-between; height:78px; gap:16px; }
+  .brand{ display:flex; align-items:center; gap:12px; flex-shrink:0; }
+  .brand img{ height:34px; width:auto; }
+  .brand span{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1.08rem; }
+  [dir="rtl"] .brand span{ font-family:'Tajawal',sans-serif; font-weight:700; }
+
+  nav.links{ display:flex; align-items:center; gap:34px; }
+  nav.links a{ font-size:0.93rem; color:var(--ink-soft); position:relative; padding:6px 0; }
+  nav.links a:hover{ color:var(--blue); }
+  .nav-right{ display:flex; align-items:center; gap:14px; }
+
+  .lang-switch{ border:1px solid var(--line); background:var(--paper-tint); border-radius:999px; padding:6px 6px; display:flex; gap:2px; font-size:0.78rem; font-weight:600; cursor:pointer; color:var(--muted); }
+  .lang-switch button{ border:none; background:transparent; padding:6px 12px; border-radius:999px; cursor:pointer; color:var(--muted); transition:background .2s, color .2s; }
+  .lang-switch button.active{ background:var(--ink); color:#fff; }
+
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 22px; border-radius:999px; font-size:0.92rem; font-weight:600; cursor:pointer; border:1px solid transparent; white-space:nowrap; transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease, color .18s ease; }
+  .btn-primary{ background:var(--ink); color:#fff; }
+  .btn-primary:hover{ background:var(--blue-deep); box-shadow:0 10px 24px -8px rgba(19,44,140,0.55); transform:translateY(-1px); }
+  .btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--blue); color:var(--blue); }
+  .btn-sm{ padding:9px 16px; font-size:0.82rem; }
+  .btn-block{ width:100%; }
+  .btn[disabled]{ opacity:.55; cursor:not-allowed; transform:none !important; }
+
+  .user-chip{ display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 14px; font-size:0.83rem; cursor:pointer; background:#fff; }
+  [dir="rtl"] .user-chip{ padding:6px 14px 6px 8px; }
+  .user-chip .av{ width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--violet)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; }
+  .user-menu{ position:relative; }
+  .user-drop{ position:absolute; top:calc(100% + 10px); right:0; background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 20px 40px -18px rgba(19,44,140,0.3); min-width:200px; padding:8px; display:none; z-index:60; }
+  [dir="rtl"] .user-drop{ right:auto; left:0; }
+  .user-drop.open{ display:block; }
+  .user-drop a, .user-drop button{ display:flex; width:100%; text-align:inherit; background:none; border:none; padding:10px 12px; border-radius:8px; font-size:0.86rem; cursor:pointer; color:var(--ink-soft); }
+  .user-drop a:hover, .user-drop button:hover{ background:var(--paper-tint); color:var(--ink); }
+
+  /* ---------- Hero ---------- */
+  .hero{ position:relative; padding:96px 0 90px; overflow:hidden; }
+  .hero-orbit{ position:absolute; top:-260px; right:-220px; width:760px; height:760px; border-radius:50%; border:1px solid rgba(36,81,242,0.16); z-index:0; animation:spin 90s linear infinite; }
+  .hero-orbit::before{ content:""; position:absolute; inset:70px; border-radius:50%; border:1px solid rgba(108,76,241,0.14); }
+  [dir="rtl"] .hero-orbit{ right:auto; left:-220px; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){ .hero-orbit{ animation:none; } }
+
+  .hero-grid{ display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:center; position:relative; z-index:1; }
+  @media(max-width:900px){ .hero-grid{ grid-template-columns:1fr; } }
+
+  .hero-fade{ opacity:0; transform:translateY(16px); animation:heroIn .8s cubic-bezier(.2,.7,.2,1) forwards; }
+  .hero-fade.d1{ animation-delay:.05s; } .hero-fade.d2{ animation-delay:.16s; } .hero-fade.d3{ animation-delay:.27s; } .hero-fade.d4{ animation-delay:.38s; } .hero-fade.d5{ animation-delay:.5s; }
+  @keyframes heroIn{ to{ opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ .hero-fade{ opacity:1; transform:none; animation:none; } }
+
+  .eyebrow{ display:inline-flex; align-items:center; gap:9px; font-size:0.83rem; color:var(--blue-deep); font-weight:600; margin-bottom:22px; }
+  .eyebrow::before{ content:""; width:7px; height:7px; border-radius:50%; background:linear-gradient(135deg, var(--blue), var(--violet)); animation:pulseDot 2.4s ease-in-out infinite; }
+  @keyframes pulseDot{ 0%,100%{ box-shadow:0 0 0 0 rgba(36,81,242,.35);} 50%{ box-shadow:0 0 0 6px rgba(36,81,242,0);} }
+
+  .hero h1{ font-size:clamp(2.3rem, 4.6vw, 3.5rem); line-height:1.08; max-width:14ch; }
+  .hero h1 em{ font-style:normal; background:linear-gradient(100deg, var(--blue) 10%, var(--violet) 65%, var(--sky) 100%); -webkit-background-clip:text; background-clip:text; color:transparent; background-size:200% auto; animation:shine 6s ease-in-out infinite; }
+  @keyframes shine{ 0%,100%{ background-position:0% center;} 50%{ background-position:100% center;} }
+  .hero p.lead{ margin-top:24px; font-size:1.08rem; color:var(--ink-soft); max-width:46ch; }
+  .hero-cta{ display:flex; gap:14px; margin-top:36px; flex-wrap:wrap; }
+  .hero-stats{ display:flex; gap:34px; margin-top:56px; flex-wrap:wrap; }
+  .hero-stats div strong{ display:block; font-family:'Space Grotesk',sans-serif; font-size:1.5rem; color:var(--ink); }
+  [dir="rtl"] .hero-stats div strong{ font-family:'Tajawal',sans-serif; }
+  .hero-stats div span{ font-size:0.82rem; color:var(--muted); }
+
+  .hero-art{ position:relative; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .hero-art .plate{ position:relative; width:100%; max-width:400px; aspect-ratio:1/1.12; border-radius:32px; background:radial-gradient(120% 120% at 20% 15%, rgba(36,81,242,0.08), transparent 60%), linear-gradient(160deg, #FBFCFF 0%, #EEF2FC 100%); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; box-shadow:0 40px 80px -40px rgba(19,44,140,0.35); animation:float 6s ease-in-out infinite; }
+  @keyframes float{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-10px);} }
+  @media (prefers-reduced-motion: reduce){ .hero-art .plate{ animation:none; } }
+  .hero-art img{ width:64%; }
+  .hero-art .tag{ position:absolute; background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px 14px; font-size:0.76rem; font-weight:600; box-shadow:0 14px 30px -14px rgba(19,44,140,0.3); color:var(--ink-soft); display:flex; align-items:center; gap:8px; }
+  .hero-art .tag i{ width:8px; height:8px; border-radius:50%; background:var(--blue); display:inline-block; }
+  .tag-1{ top:8%; left:-6%; } .tag-2{ bottom:12%; right:-8%; }
+  [dir="rtl"] .tag-1{ left:auto; right:-6%; } [dir="rtl"] .tag-2{ right:auto; left:-8%; }
+
+  section{ padding:100px 0; position:relative; }
+  .section-head{ max-width:640px; margin-bottom:56px; }
+  .section-head .kicker{ color:var(--blue); font-weight:600; font-size:0.85rem; margin-bottom:14px; display:block; }
+  .section-head h2{ font-size:clamp(1.8rem, 3vw, 2.5rem); line-height:1.16; }
+  .section-head p{ margin-top:16px; color:var(--muted); font-size:1.02rem; max-width:52ch; }
+  .band-tint{ background:var(--paper-tint); }
+  .band-ink{ background:var(--ink); color:#fff; }
+  .band-ink .muted{ color:#AEB6D6; }
+
+  .service-list{ border-top:1px solid var(--line); }
+  .service-row{ display:grid; grid-template-columns:56px 1.1fr 1.4fr 100px; gap:32px; padding:30px 0; border-bottom:1px solid var(--line); align-items:center; cursor:pointer; transition:background .2s; }
+  @media(max-width:760px){ .service-row{ grid-template-columns:40px 1fr; row-gap:8px; } .service-row .svc-desc{ grid-column:2 / -1; } .service-row .svc-link{ grid-column:2/-1; justify-self:start; } }
+  .service-row .idx{ font-family:'Space Grotesk',sans-serif; color:var(--blue); font-size:0.95rem; font-weight:600; }
+  [dir="rtl"] .service-row .idx{ font-family:'Tajawal',sans-serif; }
+  .service-row h3{ font-size:1.18rem; font-weight:600; }
+  .service-row p{ color:var(--muted); font-size:0.96rem; max-width:60ch; }
+  .service-row .svc-link{ font-size:0.85rem; font-weight:600; color:var(--blue); justify-self:end; display:flex; align-items:center; gap:6px; transition:gap .2s; }
+  .service-row:hover{ background:linear-gradient(90deg, rgba(36,81,242,0.045), transparent); }
+  .service-row:hover .svc-link{ gap:10px; }
+
+  .process{ display:grid; grid-template-columns:repeat(6,1fr); gap:0; border:1px solid var(--line); border-radius:var(--radius-lg); overflow:hidden; }
+  @media(max-width:980px){ .process{ grid-template-columns:repeat(3,1fr);} }
+  @media(max-width:620px){ .process{ grid-template-columns:1fr;} }
+  .p-step{ padding:30px 22px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); position:relative; background:#fff; transition:background .25s; }
+  [dir="rtl"] .p-step{ border-right:none; border-left:1px solid var(--line); }
+  .p-step:hover{ background:var(--paper-tint); }
+  .p-step .num{ font-family:'Space Grotesk',sans-serif; color:var(--blue); font-weight:600; font-size:0.85rem; display:block; margin-bottom:14px; }
+  [dir="rtl"] .p-step .num{ font-family:'Tajawal',sans-serif; }
+  .p-step h4{ font-size:0.98rem; font-weight:600; margin-bottom:8px; }
+  .p-step p{ font-size:0.84rem; color:var(--muted); }
+
+  .vision-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:0; border-top:1px solid rgba(255,255,255,0.14); }
+  @media(max-width:860px){ .vision-grid{ grid-template-columns:1fr; } }
+  .v-item{ padding:44px 34px; border-right:1px solid rgba(255,255,255,0.14); }
+  [dir="rtl"] .v-item{ border-right:none; border-left:1px solid rgba(255,255,255,0.14); }
+  .v-item .v-mark{ font-family:'Space Grotesk',sans-serif; font-size:0.85rem; color:#8FB0FF; margin-bottom:20px; display:block;}
+  [dir="rtl"] .v-item .v-mark{ font-family:'Tajawal',sans-serif; }
+  .v-item h3{ color:#fff; font-size:1.22rem; margin-bottom:14px; }
+  .v-item p{ color:#AEB6D6; font-size:0.95rem; }
+
+  .saas-grid{ display:grid; grid-template-columns:1fr 1fr; gap:26px; }
+  @media(max-width:820px){ .saas-grid{ grid-template-columns:1fr; } }
+  .saas-card{ border:1px solid var(--line); border-radius:var(--radius-lg); padding:38px; background:linear-gradient(180deg,#fff, var(--paper-tint)); display:flex; flex-direction:column; height:100%; transition:transform .25s ease, box-shadow .25s ease; }
+  .saas-card:hover{ transform:translateY(-4px); box-shadow:0 24px 48px -28px rgba(19,44,140,0.35); }
+  .saas-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;}
+  .saas-mark{ width:46px; height:46px; border-radius:12px; background:linear-gradient(135deg, var(--blue), var(--violet)); display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.1rem; }
+  .status-chip{ font-size:0.72rem; font-weight:600; padding:5px 11px; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+  .status-chip.live{ color:#127A4E; border-color:#BFE6D4; background:#EEFBF4; }
+  .saas-card h3{ font-size:1.35rem; margin-bottom:12px; }
+  .saas-card p.desc{ color:var(--muted); font-size:0.95rem; margin-bottom:22px; flex-grow:1; }
+  .saas-feat{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:26px; }
+  .saas-feat span{ font-size:0.76rem; color:var(--ink-soft); background:#fff; border:1px solid var(--line); padding:6px 11px; border-radius:999px; }
+
+  .arch-strip{ display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; }
+  @media(max-width:900px){ .arch-strip{ grid-template-columns:1fr; } }
+  .arch-diagram{ border:1px solid var(--line); border-radius:var(--radius-lg); padding:34px; background:var(--paper-tint); }
+  .arch-node{ display:flex; align-items:center; gap:14px; padding:14px 16px; background:#fff; border:1px solid var(--line); border-radius:12px; font-size:0.86rem; font-weight:500; margin-bottom:12px; transition:transform .2s; }
+  .arch-node:hover{ transform:translateX(4px); }
+  [dir="rtl"] .arch-node:hover{ transform:translateX(-4px); }
+  .arch-node .dot{ width:9px; height:9px; border-radius:50%; background:var(--blue); flex-shrink:0; animation:pulseDot 2.4s ease-in-out infinite; }
+  .arch-node:nth-child(2) .dot{ background:var(--violet); } .arch-node:nth-child(3) .dot{ background:var(--sky); } .arch-node:nth-child(4) .dot{ background:#1FAA71; }
+  .arch-arrow{ text-align:center; color:var(--muted); font-size:0.8rem; margin:2px 0 12px; padding-left:16px;}
+  [dir="rtl"] .arch-arrow{ padding-left:0; padding-right:16px; }
+
+  .contact-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; }
+  @media(max-width:900px){ .contact-grid{ grid-template-columns:1fr; } }
+  .contact-card{ border:1px solid var(--line); border-radius:var(--radius-lg); padding:38px; background:var(--paper-tint); }
+  .contact-line{ display:flex; align-items:center; gap:16px; padding:18px 0; border-bottom:1px solid var(--line); }
+  .contact-line:last-child{ border-bottom:none; }
+  .contact-line .ico{ width:42px; height:42px; border-radius:10px; background:#fff; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .contact-line .lbl{ font-size:0.78rem; color:var(--muted); margin-bottom:2px; }
+  .contact-line .val{ font-weight:600; font-size:1rem; }
+
+  footer{ border-top:1px solid var(--line); padding:34px 0; }
+  .foot-row{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+  .foot-row .brand span{ font-size:0.95rem; }
+  .foot-row p{ color:var(--muted); font-size:0.84rem; }
+  .foot-admin{ font-size:0.78rem; color:var(--muted); opacity:.7; }
+  .foot-admin:hover{ color:var(--blue); opacity:1; }
+
+  /* ---------- Modals ---------- */
+  .overlay{ position:fixed; inset:0; background:rgba(11,17,48,0.45); backdrop-filter:blur(3px); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; opacity:0; transition:opacity .2s ease; }
+  .overlay.open{ display:flex; opacity:1; }
+  .modal{ background:#fff; border-radius:20px; max-width:480px; width:100%; max-height:88vh; overflow-y:auto; padding:34px; position:relative; transform:translateY(14px) scale(.98); opacity:0; transition:transform .25s cubic-bezier(.2,.7,.2,1), opacity .25s ease; box-shadow:0 40px 90px -30px rgba(19,44,140,0.4); }
+  .overlay.open .modal{ transform:none; opacity:1; }
+  .modal.modal-wide{ max-width:620px; }
+  .modal .close{ position:absolute; top:18px; right:18px; width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); }
+  [dir="rtl"] .modal .close{ right:auto; left:18px; }
+  .modal .close:hover{ color:var(--ink); border-color:var(--blue); }
+  .modal h3{ font-size:1.35rem; margin-bottom:6px; padding-right:30px; }
+  [dir="rtl"] .modal h3{ padding-right:0; padding-left:30px; }
+  .modal .sub{ color:var(--muted); font-size:0.9rem; margin-bottom:26px; }
+
+  .tabs{ display:flex; gap:4px; background:var(--paper-tint); border-radius:999px; padding:4px; margin-bottom:24px; }
+  .tabs button{ flex:1; border:none; background:transparent; padding:9px; border-radius:999px; font-weight:600; font-size:0.86rem; cursor:pointer; color:var(--muted); }
+  .tabs button.active{ background:#fff; color:var(--ink); box-shadow:0 4px 12px -4px rgba(19,44,140,0.2); }
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:0.82rem; font-weight:600; margin-bottom:7px; color:var(--ink-soft); }
+  .field input, .field select, .field textarea{
+    width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px; font:inherit; font-size:0.92rem;
+    background:#fff; color:var(--ink); transition:border-color .2s, box-shadow .2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(36,81,242,0.14); outline:none; }
+  .field textarea{ resize:vertical; min-height:90px; }
+
+  .divider{ display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--muted); font-size:0.8rem; }
+  .divider::before, .divider::after{ content:""; flex:1; height:1px; background:var(--line); }
+
+  .oauth-btn{ display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:11px; border:1px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; font-weight:600; font-size:0.88rem; margin-bottom:10px; transition:border-color .2s, background .2s; }
+  .oauth-btn:hover{ border-color:var(--ink); background:var(--paper-tint); }
+
+  .form-msg{ font-size:0.84rem; padding:11px 14px; border-radius:10px; margin-bottom:16px; display:none; }
+  .form-msg.show{ display:block; }
+  .form-msg.err{ background:#FDECEC; color:var(--danger); }
+  .form-msg.ok{ background:#EAF7EF; color:var(--ok); }
+
+  .svc-detail-list{ margin:18px 0 26px; display:flex; flex-direction:column; gap:10px; }
+  .svc-detail-list li{ display:flex; gap:10px; font-size:0.9rem; color:var(--ink-soft); }
+  .svc-detail-list li::before{ content:"✓"; color:var(--blue); font-weight:700; flex-shrink:0; }
+
+  /* ---------- Toast ---------- */
+  .toast-wrap{ position:fixed; bottom:24px; right:24px; z-index:200; display:flex; flex-direction:column; gap:10px; }
+  [dir="rtl"] .toast-wrap{ right:auto; left:24px; }
+  .toast{ background:var(--ink); color:#fff; padding:14px 18px; border-radius:12px; font-size:0.87rem; box-shadow:0 20px 40px -14px rgba(0,0,0,0.4); opacity:0; transform:translateY(10px); transition:opacity .3s ease, transform .3s ease; max-width:320px; }
+  .toast.show{ opacity:1; transform:none; }
+  .toast.err{ background:var(--danger); }
+  .toast.ok{ background:var(--ok); }
+
+  .spinner{ width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); border-top-color:#fff; animation:sp .7s linear infinite; display:inline-block; }
+  @keyframes sp{ to{ transform:rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+</style>
+</head>
+<body>
+
+<div class="grain-line"></div>
+
+<header>
+  <div class="wrap nav">
+    <a href="#top" class="brand">
+      <img src="https://res.cloudinary.com/dhanjaap5/image/upload/v1789268953/intelligentEra-removebg-preview_a85ytf.png" alt="IntelligentEra logo">
+      <span>IntelligentEra</span>
+    </a>
+    <nav class="links">
+      <a href="#services" data-en="Services" data-ar="خدماتنا">Services</a>
+      <a href="#process" data-en="How we build" data-ar="طريقة العمل">How we build</a>
+      <a href="#saas" data-en="Products" data-ar="منتجاتنا">Products</a>
+      <a href="#vision" data-en="Vision" data-ar="رؤيتنا">Vision</a>
+      <a href="#contact" data-en="Contact" data-ar="تواصل معنا">Contact</a>
+    </nav>
+    <div class="nav-right">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-set-lang="en" class="active">EN</button>
+        <button type="button" data-set-lang="ar">عربي</button>
+      </div>
+      <div id="authArea"></div>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-orbit"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow hero-fade d1" data-en="Software · AI Agents · Systems" data-ar="برمجيات · وكلاء ذكاء اصطناعي · أنظمة">Software · AI Agents · Systems</span>
+        <h1 class="hero-fade d2" data-en='Software and AI, built with a &lt;em&gt;new idea&lt;/em&gt; every time.' data-ar='برمجيات وذكاء اصطناعي، وبفكرة &lt;em&gt;جديدة&lt;/em&gt; في كل مرة.'>Software and AI, built with a <em>new idea</em> every time.</h1>
+        <p class="lead hero-fade d3" data-en="IntelligentEra designs and builds websites, apps, AI agents, and full software systems for businesses across Egypt — from the first sketch to the architecture that runs behind it." data-ar="نصمم ونبني في IntelligentEra المواقع والتطبيقات ووكلاء الذكاء الاصطناعي والأنظمة البرمجية الكاملة للشركات في مصر — من أول رسمة للفكرة إلى البنية التي تشغّلها.">IntelligentEra designs and builds websites, apps, AI agents, and full software systems for businesses across Egypt — from the first sketch to the architecture that runs behind it.</p>
+        <div class="hero-cta hero-fade d4">
+          <button class="btn btn-primary" id="heroStartBtn" data-en="Start a project" data-ar="ابدأ مشروعك">Start a project</button>
+          <a href="#saas" class="btn btn-ghost" data-en="Explore our SaaS" data-ar="تعرف على منتجاتنا">Explore our SaaS</a>
+        </div>
+        <div class="hero-stats hero-fade d5">
+          <div><strong data-count="6" data-en-suffix="" data-ar="٦">0</strong><span data-en="core services" data-ar="خدمات أساسية">core services</span></div>
+          <div><strong data-count="2" data-ar="٢">0</strong><span data-en="SaaS products" data-ar="منتج SaaS">SaaS products</span></div>
+          <div><strong data-count="1" data-ar="١">0</strong><span data-en="long-term vision: an Arabic LLM" data-ar="رؤية طويلة المدى: نموذج لغوي عربي">long-term vision: an Arabic LLM</span></div>
+        </div>
+      </div>
+      <div class="hero-art hero-fade d3">
+        <div class="plate"><img src="https://res.cloudinary.com/dhanjaap5/image/upload/v1789268953/intelligentEra-removebg-preview_a85ytf.png" alt=""></div>
+        <div class="tag tag-1"><i></i><span data-en="Architecture-first" data-ar="أولوية للبنية التقنية">Architecture-first</span></div>
+        <div class="tag tag-2"><i></i><span data-en="Always improving" data-ar="تطوير مستمر">Always improving</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker" data-en="What we do" data-ar="ماذا نقدّم">What we do</span>
+        <h2 data-en="Six ways we help a business go digital" data-ar="ست طرق نساعد بها عملك على التحول الرقمي">Six ways we help a business go digital</h2>
+        <p data-en="Every engagement is treated as a real engineering project — planned, architected, and designed before a single line of code is written. Click a service to see details." data-ar="نتعامل مع كل مشروع كعمل هندسي حقيقي — يُخطَّط له وتُصمَّم بنيته قبل كتابة أي سطر كود. اضغط على أي خدمة لمعرفة التفاصيل.">Every engagement is treated as a real engineering project — planned, architected, and designed before a single line of code is written. Click a service to see details.</p>
+      </div>
+
+      <div class="service-list reveal">
+        <!-- rows injected by JS from SERVICES data -->
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section id="process" class="band-tint">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker" data-en="How we build" data-ar="طريقة عملنا">How we build</span>
+        <h2 data-en="From sketch to a system that keeps improving" data-ar="من الرسمة الأولى إلى نظام يتطور باستمرار">From sketch to a system that keeps improving</h2>
+        <p data-en="The same disciplined process runs behind every project, whatever the size." data-ar="نفس المنهج المنظم يقف خلف كل مشروع، مهما كان حجمه.">The same disciplined process runs behind every project, whatever the size.</p>
+      </div>
+
+      <div class="process reveal">
+        <div class="p-step"><span class="num">01</span><h4 data-en="Sketch the idea" data-ar="رسم الفكرة">Sketch the idea</h4><p data-en="We map what the product needs to do before deciding how." data-ar="نحدد ما يجب أن يفعله المنتج قبل تحديد كيفية ذلك.">We map what the product needs to do before deciding how.</p></div>
+        <div class="p-step"><span class="num">02</span><h4 data-en="Plan" data-ar="التخطيط">Plan</h4><p data-en="Scope, milestones, and the tradeoffs decided up front." data-ar="تحديد النطاق والمراحل وحسم القرارات الأساسية مبكرًا.">Scope, milestones, and the tradeoffs decided up front.</p></div>
+        <div class="p-step"><span class="num">03</span><h4 data-en="Design the system" data-ar="تصميم النظام">Design the system</h4><p data-en="The software architecture — how every part talks to every other part." data-ar="بنية النظام البرمجي — كيف يتواصل كل جزء مع الأجزاء الأخرى.">The software architecture — how every part talks to every other part.</p></div>
+        <div class="p-step"><span class="num">04</span><h4 data-en="Design infrastructure" data-ar="تصميم البنية التحتية">Design infrastructure</h4><p data-en="Servers, storage, and integrations sized for real usage." data-ar="خوادم وتخزين وتكاملات مصممة للاستخدام الفعلي.">Servers, storage, and integrations sized for real usage.</p></div>
+        <div class="p-step"><span class="num">05</span><h4 data-en="Design the real-world flow" data-ar="تصميم التدفق الواقعي">Design the real-world flow</h4><p data-en="Like a delivery network behind an online marketplace." data-ar="مثل شبكة توصيل خلف منصة بيع إلكتروني.">Like a delivery network behind an online marketplace.</p></div>
+        <div class="p-step"><span class="num">06</span><h4 data-en="Keep improving" data-ar="التحسين المستمر">Keep improving</h4><p data-en="Every system we ship keeps getting refined after launch." data-ar="كل نظام نطلقه يستمر تطويره بعد الإطلاق.">Every system we ship keeps getting refined after launch.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REAL WORLD ARCHITECTURE -->
+  <section>
+    <div class="wrap arch-strip">
+      <div class="reveal">
+        <span class="kicker" data-en="Beyond the screen" data-ar="أبعد من الشاشة">Beyond the screen</span>
+        <h2 style="margin-bottom:18px;" data-en="We also design what happens off-screen" data-ar="نصمم أيضًا ما يحدث خارج الشاشة">We also design what happens off-screen</h2>
+        <p style="color:var(--muted); font-size:1.02rem; max-width:48ch;" data-en="A marketplace app is only as good as what happens after checkout. We design the real-life operations connected to your software — like the delivery network behind an online marketplace — so the whole system works, not just the app." data-ar="أي تطبيق بيع إلكتروني لا يكون جيدًا إلا بقدر ما يحدث بعد إتمام الطلب. نصمم العمليات الواقعية المرتبطة ببرمجياتك — مثل شبكة التوصيل خلف منصة البيع الإلكتروني — ليعمل النظام بالكامل، لا التطبيق فقط.">A marketplace app is only as good as what happens after checkout. We design the real-life operations connected to your software — like the delivery network behind an online marketplace — so the whole system works, not just the app.</p>
+      </div>
+      <div class="arch-diagram reveal">
+        <div class="arch-node"><span class="dot"></span><span data-en="Customer places order in app" data-ar="العميل يطلب عبر التطبيق">Customer places order in app</span></div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node"><span class="dot"></span><span data-en="Order routed to nearest warehouse" data-ar="توجيه الطلب لأقرب مخزن">Order routed to nearest warehouse</span></div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node"><span class="dot"></span><span data-en="Rider assigned by live location" data-ar="تعيين مندوب التوصيل حسب الموقع">Rider assigned by live location</span></div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node"><span class="dot"></span><span data-en="Delivery tracked to the customer's door" data-ar="تتبع التوصيل حتى باب العميل">Delivery tracked to the customer's door</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAAS -->
+  <section id="saas" class="band-tint">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker" data-en="Our products" data-ar="منتجاتنا">Our products</span>
+        <h2 data-en="SaaS you can subscribe to today" data-ar="منتجات SaaS يمكنك الاشتراك بها الآن">SaaS you can subscribe to today</h2>
+        <p data-en="Two products built by IntelligentEra, ready to plug straight into your business." data-ar="منتجان من IntelligentEra، جاهزان للعمل داخل شركتك مباشرة.">Two products built by IntelligentEra, ready to plug straight into your business.</p>
+      </div>
+
+      <div class="saas-grid reveal">
+        <div class="saas-card">
+          <div class="saas-top">
+            <div class="saas-mark">FQ</div>
+            <span class="status-chip live" data-en="Live now" data-ar="متاح الآن">Live now</span>
+          </div>
+          <h3>ForecastIQ</h3>
+          <p class="desc" data-en="An AI-powered sales forecasting platform. Upload a sales history CSV and get accurate, forward-looking demand forecasts by product, store, or SKU — so you order the right stock and plan staffing with confidence instead of guesswork." data-ar="منصة تنبؤ بالمبيعات مدعومة بالذكاء الاصطناعي. ارفع سجل مبيعاتك بصيغة CSV واحصل على توقعات طلب دقيقة لكل منتج أو فرع أو صنف — لتطلب الكمية الصحيحة وتخطط للعمالة بثقة بدلًا من التخمين.">An AI-powered sales forecasting platform. Upload a sales history CSV and get accurate, forward-looking demand forecasts by product, store, or SKU — so you order the right stock and plan staffing with confidence instead of guesswork.</p>
+          <div class="saas-feat">
+            <span data-en="Forecasts up to 24 months ahead" data-ar="توقعات حتى ٢٤ شهرًا مقدمًا">Forecasts up to 24 months ahead</span>
+            <span data-en="Product &amp; store-level detail" data-ar="تفاصيل على مستوى المنتج والفرع">Product &amp; store-level detail</span>
+            <span data-en="Plain-language insights" data-ar="تحليلات بلغة بسيطة">Plain-language insights</span>
+            <span data-en="14-day free trial" data-ar="تجربة مجانية ١٤ يوم">14-day free trial</span>
+          </div>
+          <a href="https://forecastingiq-production.up.railway.app/" target="_blank" rel="noopener" class="btn btn-primary" style="align-self:flex-start;" data-en="Open ForecastIQ" data-ar="افتح ForecastIQ">Open ForecastIQ</a>
+        </div>
+
+        <div class="saas-card">
+          <div class="saas-top">
+            <div class="saas-mark">AA</div>
+            <span class="status-chip" data-en="Coming soon" data-ar="قريبًا">Coming soon</span>
+          </div>
+          <h3 data-en="AI Analyst" data-ar="AI Analyst">AI Analyst</h3>
+          <p class="desc" data-en="An AI agent that answers any business question by analyzing your own business data — ask it in plain language and get a straight answer, no dashboards to build or read." data-ar="وكيل ذكاء اصطناعي يجيب عن أي سؤال يخص عملك من خلال تحليل بياناتك الفعلية — اسأله بلغة بسيطة واحصل على إجابة مباشرة، دون الحاجة لبناء أو قراءة لوحات بيانات.">An AI agent that answers any business question by analyzing your own business data — ask it in plain language and get a straight answer, no dashboards to build or read.</p>
+          <div class="saas-feat">
+            <span data-en="Ask in plain language" data-ar="اسأل بلغة بسيطة">Ask in plain language</span>
+            <span data-en="Works with your existing data" data-ar="يعمل مع بياناتك الحالية">Works with your existing data</span>
+            <span data-en="No dashboard setup" data-ar="بدون إعداد لوحات بيانات">No dashboard setup</span>
+          </div>
+          <button class="btn btn-ghost" style="align-self:flex-start;" id="earlyAccessBtn" data-en="Get early access" data-ar="احصل على وصول مبكر">Get early access</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISION -->
+  <section id="vision" class="band-ink">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker" style="color:#8FB0FF;" data-en="Where we're going" data-ar="إلى أين نتجه">Where we're going</span>
+        <h2 style="color:#fff;" data-en="Three horizons for IntelligentEra" data-ar="ثلاثة آفاق لـ IntelligentEra">Three horizons for IntelligentEra</h2>
+        <p class="muted" data-en="A near-term mission, a standard we hold ourselves to, and a long-term bet." data-ar="مهمة قريبة المدى، ومعيار نلتزم به، ورهان بعيد المدى.">A near-term mission, a standard we hold ourselves to, and a long-term bet.</p>
+      </div>
+
+      <div class="vision-grid reveal">
+        <div class="v-item">
+          <span class="v-mark" data-en="Horizon 01" data-ar="الأفق ٠١">Horizon 01</span>
+          <h3 data-en="Digitize Egyptian business" data-ar="رقمنة الأعمال المصرية">Digitize Egyptian business</h3>
+          <p data-en="Help every business in Egypt move online and go digital — from the smallest shop to the largest enterprise." data-ar="مساعدة كل شركة في مصر على الانتقال للعالم الرقمي — من أصغر محل إلى أكبر مؤسسة.">Help every business in Egypt move online and go digital — from the smallest shop to the largest enterprise.</p>
+        </div>
+        <div class="v-item">
+          <span class="v-mark" data-en="Horizon 02" data-ar="الأفق ٠٢">Horizon 02</span>
+          <h3 data-en="One new idea, every time" data-ar="فكرة جديدة في كل مرة">One new idea, every time</h3>
+          <p data-en="Every website, app, or system we build carries creativity and one genuinely new idea — even the simplest ones should surprise the customer." data-ar="كل موقع أو تطبيق أو نظام نبنيه يحمل إبداعًا وفكرة جديدة فعليًا — حتى الأبسط منها يجب أن يفاجئ العميل.">Every website, app, or system we build carries creativity and one genuinely new idea — even the simplest ones should surprise the customer.</p>
+        </div>
+        <div class="v-item">
+          <span class="v-mark" data-en="Horizon 03" data-ar="الأفق ٠٣">Horizon 03</span>
+          <h3 data-en="An Arabic LLM" data-ar="نموذج لغوي عربي">An Arabic LLM</h3>
+          <p data-en="Our long-term goal: build the first Egyptian, Arabic, and Middle Eastern LLM able to compete with the world's leading models." data-ar="هدفنا طويل المدى: بناء أول نموذج لغوي مصري وعربي وشرق أوسطي قادر على منافسة أبرز النماذج العالمية.">Our long-term goal: build the first Egyptian, Arabic, and Middle Eastern LLM able to compete with the world's leading models.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="wrap contact-grid">
+      <div class="reveal">
+        <span class="kicker" data-en="Let's talk" data-ar="لنتحدث">Let's talk</span>
+        <h2 style="margin-bottom:18px;" data-en="Tell us what you're building" data-ar="أخبرنا بما تريد بناءه">Tell us what you're building</h2>
+        <p style="color:var(--muted); font-size:1.02rem; max-width:46ch; margin-bottom:30px;" data-en="Whether it's a first website or a full AI system, sign up and start your project brief in a couple of minutes." data-ar="سواء كان أول موقع لك أو نظام ذكاء اصطناعي كامل، سجّل وابدأ ملخص مشروعك في دقيقتين.">Whether it's a first website or a full AI system, sign up and start your project brief in a couple of minutes.</p>
+        <button class="btn btn-primary" id="contactStartBtn" data-en="Start a project" data-ar="ابدأ مشروعك">Start a project</button>
+      </div>
+
+      <div class="contact-card reveal">
+        <div class="contact-line">
+          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2451F2" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+          <div><div class="lbl" data-en="Phone" data-ar="الهاتف">Phone</div><div class="val">+20 100 162 4597</div></div>
+        </div>
+        <div class="contact-line">
+          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2451F2" stroke-width="2"><path d="M22 6l-10 7L2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg></div>
+          <div><div class="lbl" data-en="Email" data-ar="البريد الإلكتروني">Email</div><div class="val">intelligentera2226@gmail.com</div></div>
+        </div>
+        <div class="contact-line">
+          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2451F2" stroke-width="2"><path d="M21 10c0 7-9 12-9 12S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div><div class="lbl" data-en="Based in" data-ar="مقرنا">Based in</div><div class="val" data-en="Egypt" data-ar="مصر">Egypt</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <a href="#top" class="brand">
+      <img src="https://res.cloudinary.com/dhanjaap5/image/upload/v1789268953/intelligentEra-removebg-preview_a85ytf.png" alt="IntelligentEra logo" style="height:24px;">
+      <span>IntelligentEra</span>
+    </a>
+    <p data-en="© 2026 IntelligentEra. Built in Egypt." data-ar="© 2026 IntelligentEra. صُنع في مصر.">© 2026 IntelligentEra. Built in Egypt.</p>
+    <a href="admin.html" class="foot-admin" data-en="Admin" data-ar="لوحة الإدارة">Admin</a>
+  </div>
+</footer>
+
+<!-- ============ AUTH MODAL ============ -->
+<div class="overlay" id="authOverlay">
+  <div class="modal">
+    <button class="close" data-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div class="tabs">
+      <button type="button" class="active" data-auth-tab="login" data-en="Log in" data-ar="تسجيل الدخول">Log in</button>
+      <button type="button" data-auth-tab="signup" data-en="Sign up" data-ar="إنشاء حساب">Sign up</button>
+    </div>
+
+    <div class="form-msg" id="authMsg"></div>
+
+    <button class="oauth-btn" id="googleBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 35.4 26.9 36 24 36c-5.3 0-9.8-3.4-11.4-8.1l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.5l6.6 5.4C41.8 35.5 44 30.1 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+      <span data-en="Continue with Google" data-ar="المتابعة عبر Google">Continue with Google</span>
+    </button>
+    <button class="oauth-btn" id="appleBtn">
+      <svg width="16" height="18" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+      <span data-en="Continue with Apple" data-ar="المتابعة عبر Apple">Continue with Apple</span>
+    </button>
+
+    <div class="divider" data-en="or" data-ar="أو">or</div>
+
+    <form id="loginForm">
+      <div class="field"><label data-en="Email" data-ar="البريد الإلكتروني">Email</label><input type="email" required id="loginEmail" autocomplete="email"></div>
+      <div class="field"><label data-en="Password" data-ar="كلمة المرور">Password</label><input type="password" required id="loginPassword" autocomplete="current-password"></div>
+      <button type="submit" class="btn btn-primary btn-block" id="loginSubmit" data-en="Log in" data-ar="تسجيل الدخول">Log in</button>
+    </form>
+
+    <form id="signupForm" style="display:none;">
+      <div class="field"><label data-en="Full name" data-ar="الاسم بالكامل">Full name</label><input type="text" required id="signupName" autocomplete="name"></div>
+      <div class="field"><label data-en="Email" data-ar="البريد الإلكتروني">Email</label><input type="email" required id="signupEmail" autocomplete="email"></div>
+      <div class="field"><label data-en="Password" data-ar="كلمة المرور">Password</label><input type="password" required minlength="6" id="signupPassword" autocomplete="new-password"></div>
+      <button type="submit" class="btn btn-primary btn-block" id="signupSubmit" data-en="Create account" data-ar="إنشاء الحساب">Create account</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ SERVICE DETAIL MODAL ============ -->
+<div class="overlay" id="serviceOverlay">
+  <div class="modal">
+    <button class="close" data-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <span class="kicker" id="svcKicker" style="display:block; margin-bottom:8px;"></span>
+    <h3 id="svcTitle"></h3>
+    <p class="sub" id="svcDesc"></p>
+    <ul class="svc-detail-list" id="svcBullets"></ul>
+    <button class="btn btn-primary btn-block" id="svcStartBtn" data-en="Start my project" data-ar="ابدأ مشروعي">Start my project</button>
+  </div>
+</div>
+
+<!-- ============ PROJECT MODAL ============ -->
+<div class="overlay" id="projectOverlay">
+  <div class="modal modal-wide">
+    <button class="close" data-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <h3 data-en="Start my project" data-ar="ابدأ مشروعي">Start my project</h3>
+    <p class="sub" data-en="Tell us the essentials — we'll follow up by phone or email." data-ar="أخبرنا بالأساسيات — سنتواصل معك عبر الهاتف أو البريد الإلكتروني.">Tell us the essentials — we'll follow up by phone or email.</p>
+
+    <div class="form-msg" id="projectMsg"></div>
+
+    <form id="projectForm">
+      <div class="field">
+        <label data-en="Service" data-ar="الخدمة">Service</label>
+        <select id="pjService" required></select>
+      </div>
+      <div class="field">
+        <label data-en="Project name" data-ar="اسم المشروع">Project name</label>
+        <input type="text" id="pjName" required>
+      </div>
+      <div class="field">
+        <label data-en="Project details — what do you want to build?" data-ar="تفاصيل المشروع — ماذا تريد أن تبني؟">Project details — what do you want to build?</label>
+        <textarea id="pjDetails" required></textarea>
+      </div>
+      <div class="field">
+        <label data-en="Phone number" data-ar="رقم الهاتف">Phone number</label>
+        <input type="tel" id="pjPhone" required>
+      </div>
+      <div class="field">
+        <label data-en="Email" data-ar="البريد الإلكتروني">Email</label>
+        <input type="email" id="pjEmail" required>
+      </div>
+      <div class="field">
+        <label data-en="Budget" data-ar="الميزانية">Budget</label>
+        <select id="pjBudget" required>
+          <option value="" data-en="Select a range" data-ar="اختر نطاقًا">Select a range</option>
+          <option value="< $1,000">&lt; $1,000</option>
+          <option value="$1,000 – $5,000">$1,000 – $5,000</option>
+          <option value="$5,000 – $15,000">$5,000 – $15,000</option>
+          <option value="$15,000+">$15,000+</option>
+          <option value="not-sure" data-en="Not sure yet" data-ar="غير محدد بعد">Not sure yet</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="projectSubmit" data-en="Submit project" data-ar="إرسال المشروع">Submit project</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ============ FIREBASE ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyA95dYkvm8CDwhiiERyFjjpR9KQr7_y3q8",
+    authDomain: "intelligentera-8ce89.firebaseapp.com",
+    projectId: "intelligentera-8ce89",
+    storageBucket: "intelligentera-8ce89.firebasestorage.app",
+    messagingSenderId: "619371412828",
+    appId: "1:619371412828:web:619a46db42f80582615599",
+    measurementId: "G-WVGMKDZ59P"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  /* ---------------- i18n ---------------- */
+  const buttons = document.querySelectorAll('[data-set-lang]');
+  const htmlEl = document.documentElement;
+  function applyI18n(){
+    const lang = htmlEl.getAttribute('lang');
+    document.querySelectorAll('[data-en]').forEach(el => {
+      const val = el.getAttribute('data-' + lang);
+      if(val !== null){ el.innerHTML = val; }
+    });
+  }
+  function setLang(lang){
+    htmlEl.setAttribute('lang', lang);
+    htmlEl.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    applyI18n();
+    renderServiceRows();
+    renderAuthArea();
+    buttons.forEach(b => b.classList.toggle('active', b.getAttribute('data-set-lang') === lang));
+    try{ localStorage.setItem('ie-lang', lang); }catch(e){}
+  }
+  buttons.forEach(b => b.addEventListener('click', () => setLang(b.getAttribute('data-set-lang'))));
+
+  /* ---------------- Toast ---------------- */
+  function toast(msg, type){
+    const wrap = document.getElementById('toastWrap');
+    const t = document.createElement('div');
+    t.className = 'toast' + (type ? ' ' + type : '');
+    t.textContent = msg;
+    wrap.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 4200);
+  }
+
+  /* ---------------- Modal helpers ---------------- */
+  function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+  document.querySelectorAll('.overlay').forEach(ov => {
+    ov.addEventListener('click', e => { if(e.target === ov) closeModal(ov.id); });
+  });
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', e => closeModal(e.target.closest('.overlay').id)));
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') document.querySelectorAll('.overlay.open').forEach(o => closeModal(o.id)); });
+
+  /* ---------------- Services data ---------------- */
+  const SERVICES = [
+    { id:'software', en:{ name:'Software', desc:'Custom systems built around how your business actually operates, not a generic template.', bullets:['A system designed around your workflow, not the other way around','Clean, documented architecture your team can build on later','Built to scale as the business grows'] }, ar:{ name:'أنظمة برمجية', desc:'أنظمة مخصصة تُبنى حول طريقة عمل شركتك فعليًا، وليست قالبًا جاهزًا.', bullets:['نظام مصمم حول سير عملك، وليس العكس','بنية واضحة وموثقة يمكن لفريقك البناء عليها لاحقًا','مبني ليتوسع مع نمو الشركة'] } },
+    { id:'websites', en:{ name:'Websites', desc:"From a brand's first landing page to a full multi-page platform, designed to be found and remembered.", bullets:['Fast, mobile-first pages that load instantly','Search-friendly structure from day one','A design identity that stands out from templates'] }, ar:{ name:'مواقع إلكترونية', desc:'من أول صفحة تعريفية للعلامة التجارية إلى منصة كاملة متعددة الصفحات، مصممة لتُرى وتُتذكر.', bullets:['صفحات سريعة ومهيأة للموبايل بالأساس','بنية متوافقة مع محركات البحث منذ اليوم الأول','هوية تصميم مميزة بعيدًا عن القوالب الجاهزة'] } },
+    { id:'apps', en:{ name:'Apps', desc:'Mobile and web apps for customers, staff, or delivery teams — built to be used every day.', bullets:['iOS, Android, and web from one codebase where it fits','Built for daily, real-world use — not just a demo','Push notifications, accounts, and payments included'] }, ar:{ name:'تطبيقات', desc:'تطبيقات موبايل وويب للعملاء أو الموظفين أو فرق التوصيل — مبنية للاستخدام اليومي.', bullets:['iOS وAndroid وويب من كود واحد عند الإمكان','مبني للاستخدام اليومي الفعلي وليس مجرد عرض تجريبي','إشعارات وحسابات ومدفوعات مدمجة'] } },
+    { id:'saas', en:{ name:'SaaS', desc:'Multi-tenant products with billing, plans, and usage tracking, built to run as a real product.', bullets:['Subscription plans, billing, and usage limits built in','Secure multi-tenant data isolation','An admin dashboard to run the product day to day'] }, ar:{ name:'منتجات SaaS', desc:'منتجات متعددة العملاء مع نظام اشتراكات وباقات ومتابعة استخدام، مبنية لتعمل كمنتج حقيقي.', bullets:['باقات اشتراك وفوترة وحدود استخدام مدمجة','عزل آمن لبيانات كل عميل','لوحة تحكم لإدارة المنتج يوميًا'] } },
+    { id:'agents', en:{ name:'AI agents', desc:'Agents that read data, make decisions, and take action inside your existing tools.', bullets:['Connects to the tools you already use','Makes decisions on real data, not guesses','Human-in-the-loop where it matters'] }, ar:{ name:'وكلاء ذكاء اصطناعي', desc:'وكلاء يقرأون بياناتك، ويتخذون قرارات، وينفذون إجراءات داخل أدواتك الحالية.', bullets:['يتصل بالأدوات التي تستخدمها بالفعل','يتخذ قرارات بناءً على بيانات حقيقية لا تخمينات','تدخل بشري عند الحاجة'] } },
+    { id:'automation', en:{ name:'Automation agents', desc:'AI that answers your customers on WhatsApp and Instagram automatically, around the clock.', bullets:['Answers WhatsApp and Instagram messages instantly','Trained on your products, prices, and FAQs','Hands off to a human whenever needed'] }, ar:{ name:'وكلاء أتمتة', desc:'ذكاء اصطناعي يرد على عملائك تلقائيًا على واتساب وإنستغرام على مدار الساعة.', bullets:['يرد على رسائل واتساب وإنستغرام فورًا','مدرّب على منتجاتك وأسعارك والأسئلة الشائعة','يحوّل المحادثة لموظف بشري عند الحاجة'] } }
+  ];
+
+  function renderServiceRows(){
+    const lang = htmlEl.getAttribute('lang');
+    const list = document.querySelector('.service-list');
+    list.innerHTML = SERVICES.map((s, i) => `
+      <div class="service-row" data-svc="${s.id}">
+        <span class="idx">${String(i+1).padStart(2,'0')}</span>
+        <h3>${s[lang].name}</h3>
+        <p class="svc-desc">${s[lang].desc}</p>
+        <span class="svc-link">${lang === 'ar' ? 'التفاصيل' : 'Details'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="${lang==='ar' ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'}"/></svg></span>
+      </div>
+    `).join('');
+    list.querySelectorAll('.service-row').forEach(row => {
+      row.addEventListener('click', () => openServiceDetail(row.getAttribute('data-svc')));
+    });
+  }
+
+  let pendingServiceId = null;
+
+  function openServiceDetail(id){
+    const lang = htmlEl.getAttribute('lang');
+    const s = SERVICES.find(x => x.id === id);
+    if(!s) return;
+    document.getElementById('svcKicker').textContent = lang === 'ar' ? 'خدمة' : 'Service';
+    document.getElementById('svcTitle').textContent = s[lang].name;
+    document.getElementById('svcDesc').textContent = s[lang].desc;
+    document.getElementById('svcBullets').innerHTML = s[lang].bullets.map(b => `<li>${b}</li>`).join('');
+    pendingServiceId = id;
+    openModal('serviceOverlay');
+  }
+
+  document.getElementById('svcStartBtn').addEventListener('click', () => {
+    closeModal('serviceOverlay');
+    launchProjectFlow(pendingServiceId);
+  });
+
+  document.getElementById('heroStartBtn').addEventListener('click', () => launchProjectFlow());
+  document.getElementById('contactStartBtn').addEventListener('click', () => launchProjectFlow());
+  document.getElementById('earlyAccessBtn').addEventListener('click', () => launchProjectFlow('agents'));
+
+  function launchProjectFlow(serviceId){
+    pendingServiceId = serviceId || null;
+    if(auth.currentUser){
+      openProjectForm();
+    } else {
+      pendingAfterAuth = () => openProjectForm();
+      openAuth('login');
+    }
+  }
+
+  let pendingAfterAuth = null;
+
+  function openProjectForm(){
+    const sel = document.getElementById('pjService');
+    const lang = htmlEl.getAttribute('lang');
+    sel.innerHTML = SERVICES.map(s => `<option value="${s.id}">${s[lang].name}</option>`).join('');
+    if(pendingServiceId){ sel.value = pendingServiceId; }
+    if(auth.currentUser && auth.currentUser.email){ document.getElementById('pjEmail').value = auth.currentUser.email; }
+    document.getElementById('projectMsg').classList.remove('show');
+    openModal('projectOverlay');
+  }
+
+  /* ---------------- Auth UI ---------------- */
+  function openAuth(tab){
+    document.querySelectorAll('[data-auth-tab]').forEach(b => b.classList.toggle('active', b.getAttribute('data-auth-tab') === tab));
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+    document.getElementById('authMsg').classList.remove('show');
+    openModal('authOverlay');
+  }
+  document.querySelectorAll('[data-auth-tab]').forEach(b => b.addEventListener('click', () => openAuth(b.getAttribute('data-auth-tab'))));
+
+  function showAuthMsg(msg, type){
+    const el = document.getElementById('authMsg');
+    el.textContent = msg; el.className = 'form-msg show ' + type;
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginSubmit');
+    btn.disabled = true;
+    try{
+      await auth.signInWithEmailAndPassword(email, pass);
+      closeModal('authOverlay');
+      toast(htmlEl.getAttribute('lang') === 'ar' ? 'تم تسجيل الدخول بنجاح' : 'Logged in successfully', 'ok');
+      if(pendingAfterAuth){ pendingAfterAuth(); pendingAfterAuth = null; }
+    }catch(err){
+      showAuthMsg(friendlyAuthError(err), 'err');
+    }finally{ btn.disabled = false; }
+  });
+
+  document.getElementById('signupForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const pass = document.getElementById('signupPassword').value;
+    const btn = document.getElementById('signupSubmit');
+    btn.disabled = true;
+    try{
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      await cred.user.updateProfile({ displayName: name });
+      await cred.user.sendEmailVerification();
+      await db.collection('users').doc(cred.user.uid).set({
+        name, email, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      closeModal('authOverlay');
+      toast(htmlEl.getAttribute('lang') === 'ar' ? 'تم إنشاء الحساب! تحقق من بريدك لتفعيله.' : 'Account created! Check your email to verify it.', 'ok');
+      if(pendingAfterAuth){ pendingAfterAuth(); pendingAfterAuth = null; }
+    }catch(err){
+      showAuthMsg(friendlyAuthError(err), 'err');
+    }finally{ btn.disabled = false; }
+  });
+
+  document.getElementById('googleBtn').addEventListener('click', async () => {
+    try{
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const cred = await auth.signInWithPopup(provider);
+      await db.collection('users').doc(cred.user.uid).set({
+        name: cred.user.displayName || '', email: cred.user.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      closeModal('authOverlay');
+      toast(htmlEl.getAttribute('lang') === 'ar' ? 'تم تسجيل الدخول عبر Google' : 'Signed in with Google', 'ok');
+      if(pendingAfterAuth){ pendingAfterAuth(); pendingAfterAuth = null; }
+    }catch(err){ showAuthMsg(friendlyAuthError(err), 'err'); }
+  });
+
+  document.getElementById('appleBtn').addEventListener('click', async () => {
+    try{
+      const provider = new firebase.auth.OAuthProvider('apple.com');
+      const cred = await auth.signInWithPopup(provider);
+      await db.collection('users').doc(cred.user.uid).set({
+        name: cred.user.displayName || '', email: cred.user.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      closeModal('authOverlay');
+      toast(htmlEl.getAttribute('lang') === 'ar' ? 'تم تسجيل الدخول عبر Apple' : 'Signed in with Apple', 'ok');
+      if(pendingAfterAuth){ pendingAfterAuth(); pendingAfterAuth = null; }
+    }catch(err){ showAuthMsg(friendlyAuthError(err), 'err'); }
+  });
+
+  function friendlyAuthError(err){
+    const lang = htmlEl.getAttribute('lang');
+    const map = {
+      'auth/email-already-in-use': lang==='ar' ? 'هذا البريد مسجل بالفعل.' : 'That email is already registered.',
+      'auth/invalid-email': lang==='ar' ? 'صيغة البريد الإلكتروني غير صحيحة.' : 'That email address looks invalid.',
+      'auth/weak-password': lang==='ar' ? 'كلمة المرور ضعيفة جدًا (٦ أحرف على الأقل).' : 'Password is too weak (min 6 characters).',
+      'auth/wrong-password': lang==='ar' ? 'كلمة المرور غير صحيحة.' : 'Incorrect password.',
+      'auth/user-not-found': lang==='ar' ? 'لا يوجد حساب بهذا البريد.' : 'No account found with that email.',
+      'auth/invalid-credential': lang==='ar' ? 'البريد أو كلمة المرور غير صحيحة.' : 'Incorrect email or password.',
+      'auth/popup-closed-by-user': lang==='ar' ? 'تم إغلاق النافذة قبل إتمام تسجيل الدخول.' : 'Sign-in window was closed before finishing.',
+      'auth/operation-not-allowed': lang==='ar' ? 'طريقة تسجيل الدخول هذه غير مفعّلة بعد.' : 'This sign-in method isn\\'t enabled yet.'
+    };
+    return map[err.code] || err.message;
+  }
+
+  /* ---------------- Nav auth area ---------------- */
+  function renderAuthArea(){
+    const lang = htmlEl.getAttribute('lang');
+    const area = document.getElementById('authArea');
+    const user = auth.currentUser;
+    if(user){
+      const initial = (user.displayName || user.email || '?').trim().charAt(0).toUpperCase();
+      area.innerHTML = `
+        <div class="user-menu">
+          <div class="user-chip" id="userChipBtn"><span class="av">${initial}</span><span>${(user.displayName || user.email || '').split(' ')[0]}</span></div>
+          <div class="user-drop" id="userDrop">
+            <button id="myProjectBtn">${lang==='ar' ? 'ابدأ مشروعًا' : 'Start a project'}</button>
+            <button id="logoutBtn">${lang==='ar' ? 'تسجيل الخروج' : 'Log out'}</button>
+          </div>
+        </div>`;
+      document.getElementById('userChipBtn').addEventListener('click', () => document.getElementById('userDrop').classList.toggle('open'));
+      document.getElementById('myProjectBtn').addEventListener('click', () => { document.getElementById('userDrop').classList.remove('open'); launchProjectFlow(); });
+      document.getElementById('logoutBtn').addEventListener('click', async () => { await auth.signOut(); document.getElementById('userDrop').classList.remove('open'); toast(lang==='ar' ? 'تم تسجيل الخروج' : 'Logged out'); });
+    } else {
+      area.innerHTML = `<button class="btn btn-primary btn-sm" id="navAuthBtn">${lang==='ar' ? 'دخول / تسجيل' : 'Log in / Sign up'}</button>`;
+      document.getElementById('navAuthBtn').addEventListener('click', () => openAuth('login'));
+    }
+  }
+  document.addEventListener('click', e => {
+    const drop = document.getElementById('userDrop');
+    if(drop && !e.target.closest('.user-menu')) drop.classList.remove('open');
+  });
+
+  auth.onAuthStateChanged(() => renderAuthArea());
+
+  /* ---------------- Project form submit ---------------- */
+  document.getElementById('projectForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const lang = htmlEl.getAttribute('lang');
+    if(!auth.currentUser){ openAuth('login'); return; }
+    const btn = document.getElementById('projectSubmit');
+    btn.disabled = true;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span>';
+    try{
+      await db.collection('projects').add({
+        uid: auth.currentUser.uid,
+        accountEmail: auth.currentUser.email || '',
+        serviceId: document.getElementById('pjService').value,
+        serviceName: SERVICES.find(s => s.id === document.getElementById('pjService').value)['en'].name,
+        projectName: document.getElementById('pjName').value.trim(),
+        details: document.getElementById('pjDetails').value.trim(),
+        phone: document.getElementById('pjPhone').value.trim(),
+        email: document.getElementById('pjEmail').value.trim(),
+        budget: document.getElementById('pjBudget').value,
+        status: 'new',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      closeModal('projectOverlay');
+      document.getElementById('projectForm').reset();
+      toast(lang==='ar' ? 'تم إرسال مشروعك! سنتواصل معك قريبًا.' : 'Project submitted! We\\'ll be in touch soon.', 'ok');
+    }catch(err){
+      const el = document.getElementById('projectMsg');
+      el.textContent = err.message; el.className = 'form-msg show err';
+    }finally{
+      btn.disabled = false; btn.innerHTML = orig;
+    }
+  });
+
+  /* ---------------- Reveal on scroll ---------------- */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => { if(en.isIntersecting){ en.target.classList.add('in-view'); io.unobserve(en.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* ---------------- Counter animation ---------------- */
+  function animateCounters(){
+    document.querySelectorAll('[data-count]').forEach(el => {
+      const target = parseInt(el.getAttribute('data-count'), 10);
+      const lang = htmlEl.getAttribute('lang');
+      const isAr = lang === 'ar';
+      const arDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+      let cur = 0;
+      const step = Math.max(1, Math.round(target / 24));
+      const t = setInterval(() => {
+        cur += step;
+        if(cur >= target){ cur = target; clearInterval(t); }
+        el.textContent = isAr ? String(cur).split('').map(d => arDigits[d]||d).join('') : cur;
+      }, 40);
+    });
+  }
+  setTimeout(animateCounters, 500);
+
+  /* ---------------- Init ---------------- */
+  let initial = 'en';
+  try{ initial = localStorage.getItem('ie-lang') || 'en'; }catch(e){}
+  setLang(initial);
+</script>
+
+</body>
+</html>
