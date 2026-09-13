@@ -812,7 +812,7 @@
       'auth/user-not-found': lang==='ar' ? 'لا يوجد حساب بهذا البريد.' : 'No account found with that email.',
       'auth/invalid-credential': lang==='ar' ? 'البريد أو كلمة المرور غير صحيحة.' : 'Incorrect email or password.',
       'auth/popup-closed-by-user': lang==='ar' ? 'تم إغلاق النافذة قبل إتمام تسجيل الدخول.' : 'Sign-in window was closed before finishing.',
-      'auth/operation-not-allowed': lang==='ar' ? 'طريقة تسجيل الدخول هذه غير مفعّلة بعد.' : 'This sign-in method isn\\'t enabled yet.'
+      'auth/operation-not-allowed': lang==='ar' ? 'طريقة تسجيل الدخول هذه غير مفعّلة بعد.' : 'This sign-in method isn\'t enabled yet.'
     };
     return map[err.code] || err.message;
   }
@@ -872,7 +872,7 @@
       });
       closeModal('projectOverlay');
       document.getElementById('projectForm').reset();
-      toast(lang==='ar' ? 'تم إرسال مشروعك! سنتواصل معك قريبًا.' : 'Project submitted! We\\'ll be in touch soon.', 'ok');
+      toast(lang==='ar' ? 'تم إرسال مشروعك! سنتواصل معك قريبًا.' : 'Project submitted! We\'ll be in touch soon.', 'ok');
     }catch(err){
       const el = document.getElementById('projectMsg');
       el.textContent = err.message; el.className = 'form-msg show err';
